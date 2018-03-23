@@ -18,18 +18,18 @@ struct Particle {
 	double y;
 	double theta;
 	double weight;
+    // associations should contain IDs of associated landmarks
+    // sense_x and sense_y should contain map coordinates of
+    // the landmarks
 	std::vector<int> associations;
 	std::vector<double> sense_x;
 	std::vector<double> sense_y;
 };
 
-
-
 class ParticleFilter {
 	
 	// Number of particles to draw
-	int num_particles; 
-	
+	int num_particles;
 	
 	
 	// Flag, if filter is initialized
