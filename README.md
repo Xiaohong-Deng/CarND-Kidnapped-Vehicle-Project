@@ -87,7 +87,29 @@ Your job is to build out the methods in `particle_filter.cpp` until the simulato
 ```
 Success! Your particle filter passed!
 ```
+# Pondering my bug
+After I finished my project, when I ran it in the simulator the particles spinning downwards since the very beginning of the simulation. When I looked into the calculation spitted out I noticed weights are normal only for the first iteration. If you look into `amin.cpp` you will find that in the 1st iteration `prediction is not called`. Bugs is in it.
 
+FIX I found: the fix is pre-compute some constant multiplication/division. I can’t believe this. Usually this kind of optimization is done by compilers, programmer should not think too much.
+
+my buggy prediction calculation
+```objectivec
+  if (fabs(yaw_rate) > ALMOST_ZERO) {
+     pred_x = p.x + (velocity / yaw_rate) * (sin(p.theta + yaw_rate * delta_t) - sin(p.theta));
+     pred_y = p.y + (velocity / yaw_rate) * (cos(p.theta) - cos(p.theta + yaw_rate * delta_t));
+     pred_theta = p.theta + velocity * delta_t;
+ } else {
+    pred_x = p.x + velocity * delta_t * cos(p.theta);
+    pred_y = p.y + velocity * delta_t * sin(p.theta);
+    pred_theta = p.theta;
+}
+```
+
+As long as you extract velocity / yaw_rate, yaw_rate * delta_t and velocity * delta_t out of the loop over particles, store them in variables, my particle filter works with 10 particles.
+
+In buggy code, unnormalized weights become zeros after 2 iterations, which leads to nans in normalized weights (sum_weights = 0).
+
+Since inaccurate prediction caused this mess, I think I can explain this. After prediction all particles are very far from ground truth. Their accumulated PDF are very small. After 2 rounds of movement, the PDF is so small that double type can not store them, resulting in zero weights for all.
 # Implementing the Particle Filter
 The directory structure of this repository is as follows:
 
